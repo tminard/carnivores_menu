@@ -416,6 +416,7 @@ typedef struct _TTrophyRoom {
 
 typedef struct _TDinoInfo {
 	TPicture MenuPic;
+	TPicture MenuPicHidden;
 	char MenuTxt[512];
 	char Name[48], FName[48], PName[48];	
 	int Health0, AI;
@@ -426,22 +427,42 @@ typedef struct _TDinoInfo {
 	int   Scale0, ScaleA, BaseScore;
 	TPicture CallIcon;
 	int Price; //For menu
+	bool Hide;
 	bool Selected; //For menu
 	int Code; //For menu
 } TDinoInfo;
+
+_EXTORNOT bool radarDefault, camoDefault, scentDefault, doubleAmmoDefault,
+			tranqDefault, supplyDefault, sonarDefault, scannerDefault, dogDefault,
+			binoDefault, binTextDefault, mapviewDefault, callboxDefault;
+
+_EXTORNOT TPicture DawnPic;
+_EXTORNOT TPicture DayPic;
+_EXTORNOT TPicture NightPic;
+_EXTORNOT TPicture ObservPic;
+
 
 typedef struct _TAccessInfo {
 	TPicture MenuPic;
 	char MenuTxt[512];
 	char name[48];
-	char CommandLine[128];
+	//char CommandLine[128];
 	bool Selected;
 	int price;
+	float scoreMod;
+	bool radar, camo, scent, doubleAmmo,
+		tranq, supply, sonar, scanner, dog,
+		bino, binText, mapview, callbox;
 } TAcessInfo;
 _EXTORNOT TAcessInfo AcessInfo[512];
-_EXTORNOT int TotalA,SpentCredits,SelectedDay;
+_EXTORNOT int SpentCredits,SelectedDay;
 _EXTORNOT int * PtrSelectedKey; //Pointer to seleted key
 _EXTORNOT bool AKeySelected;
+
+_EXTORNOT char DawnTxt[512];
+_EXTORNOT char DayTxt[512];
+_EXTORNOT char NightTxt[512];
+_EXTORNOT char ObservTxt[512];
 
 typedef struct _TWeapInfo {
 	TPicture MenuPic;
@@ -456,6 +477,8 @@ typedef struct _TWeapInfo {
 	bool Selected; //For menu
 	int Code; //For menu
 } TWeapInfo;
+
+
 
 
 typedef struct _TFogEntity {
@@ -575,12 +598,73 @@ void Render_LifeInfo(int);
 void RenderModelClipEnvMap(TModel*, float, float, float, float, float);
 void RenderModelClipPhongMap(TModel*, float, float, float, float, float);
 
+_EXTORNOT int DinoStatType; // 1 dino  2 weap
+_EXTORNOT int DinoStatIndex;
+
+_EXTORNOT int survivalArea;
+_EXTORNOT int survivalWeapon;
+_EXTORNOT int survivalDTM;
+_EXTORNOT int startScore;
+
+
+_EXTORNOT int regOffR;
+_EXTORNOT int regOffG;
+_EXTORNOT int regOffB;
+_EXTORNOT int regOffFontC;
+
+_EXTORNOT int regOnR;
+_EXTORNOT int regOnG;
+_EXTORNOT int regOnB;
+_EXTORNOT int regOnFontC;
+
+_EXTORNOT int scoreR;
+_EXTORNOT int scoreG;
+_EXTORNOT int scoreB;
+_EXTORNOT int scoreFontC;
+
+_EXTORNOT int mainStatR;
+_EXTORNOT int mainStatG;
+_EXTORNOT int mainStatB;
+_EXTORNOT int mainStatFontC;
+
+_EXTORNOT int huntOffR;
+_EXTORNOT int huntOffG;
+_EXTORNOT int huntOffB;
+_EXTORNOT int huntOffFontC;
+
+_EXTORNOT int huntAvailR;
+_EXTORNOT int huntAvailG;
+_EXTORNOT int huntAvailB;
+_EXTORNOT int huntAvailFontC;
+
+_EXTORNOT int huntOnR;
+_EXTORNOT int huntOnG;
+_EXTORNOT int huntOnB;
+_EXTORNOT int huntOnFontC;
+
+_EXTORNOT int huntInfoR;
+_EXTORNOT int huntInfoG;
+_EXTORNOT int huntInfoB;
+_EXTORNOT int huntInfoFontC;
+
+_EXTORNOT int opNameR;
+_EXTORNOT int opNameG;
+_EXTORNOT int opNameB;
+_EXTORNOT int opNameFontC;
+
+_EXTORNOT int opValueR;
+_EXTORNOT int opValueG;
+_EXTORNOT int opValueB;
+_EXTORNOT int opValueFontC;
+
+
 void RenderModel         (TModel*, float, float, float, int, int, float, float);
 void RenderBMPModel      (TBMPModel*, float, float, float, int);
 void RenderModelClipWater(TModel*, float, float, float, int, int, float, float);
 void RenderModelClip     (TModel*, float, float, float, int, int, float, float);
 void RenderNearModel     (TModel*, float, float, float, int, float, float);
 void DrawPicture         (int x, int y, TPicture &pic);
+void DrawStatBar         (int x, int y, float val, LPSTR txt);
 
 void InitClips();
 void InitDirectDraw();
@@ -725,7 +809,7 @@ void CloseLog();
 _EXTORNOT   float BackViewR;
 _EXTORNOT   int   BackViewRR;
 _EXTORNOT   int   UnderWaterT;
-_EXTORNOT   int   TotalC, TotalW;
+_EXTORNOT   int   TotalC, TotalW, TotalA;
 
 
 //========== common ==================//
@@ -813,8 +897,8 @@ _EXTORNOT TModel *SunModel;
 _EXTORNOT TCharacterInfo WCircleModel;
 _EXTORNOT TModel *CompasModel;
 _EXTORNOT TModel *Binocular;
-_EXTORNOT TDinoInfo DinoInfo[32];
-_EXTORNOT TWeapInfo WeapInfo[8];
+_EXTORNOT TDinoInfo DinoInfo[255];
+_EXTORNOT TWeapInfo WeapInfo[255];
 _EXTORNOT TCharacterInfo ShipModel, SShipModel, AmmoModel;
 _EXTORNOT int AI_to_CIndex[32];
 _EXTORNOT int ChCount, WCCount, ElCount, SnCount,
@@ -939,14 +1023,15 @@ _EXTORNOT BOOL TypingMode; //Game is in type mode
 _EXTORNOT int ENGINE_FPS,MAX_FPS;
 
 
-_EXTORNOT   struct _t {
+typedef struct _TKeyMap {
 #ifdef _iceage // alacn
 		int fkForward, fkBackward, fkUp, fkDown, fkLeft, fkRight, fkFire, fkShow, fkSLeft, fkSRight, fkStrafe, fkJump, fkRun, fkCrouch, fkCall, fkCCall, fkBinoc, fkSupply;
 #else
-		int fkForward, fkBackward, fkUp, fkDown, fkLeft, fkRight, fkFire, fkShow, fkSLeft, fkSRight, fkStrafe, fkJump, fkRun, fkCrouch, fkCall, fkCCall, fkBinoc, fkSupply, fkSprint, fkAim;
+		int fkForward, fkBackward, fkUp, fkDown, fkLeft, fkRight, fkFire, fkShow, fkSLeft, fkSRight, fkStrafe, fkJump, fkRun, fkCrouch, fkCall, fkCCall, fkBinoc;//, fkSupply, fkSprint, fkAim
 #endif
-	} KeyMap;
+	} TKeyMap;
 
+_EXTORNOT TKeyMap KeyMap;
 
 #define kfForward     0x00000001
 #define kfBackward    0x00000002

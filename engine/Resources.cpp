@@ -897,36 +897,36 @@ void LoadPicture(TPicture &pic, LPSTR pname)
 
 void LoadPictureTGA(TPicture &pic, LPSTR pname)
 {
-    DWORD l;
-	WORD w,h;
-    HANDLE hfile;
+	DWORD l;
+	WORD w, h;
+	HANDLE hfile;
 
-	
-    hfile = CreateFile(pname, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
-    if( hfile==INVALID_HANDLE_VALUE ) {		
-        char sz[512];
-        wsprintf( sz, "Error opening file\n%s.", pname );
-		DoHalt(sz);        
-    }
+
+	hfile = CreateFile(pname, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile == INVALID_HANDLE_VALUE) {
+		char sz[512];
+		wsprintf(sz, "Error opening file\n%s.", pname);
+		DoHalt(sz);
+	}
 
 	SetFilePointer(hfile, 12, 0, FILE_BEGIN);
 
-    ReadFile( hfile, &w, 2, &l, NULL );
-    ReadFile( hfile, &h, 2, &l, NULL );
+	ReadFile(hfile, &w, 2, &l, NULL);
+	ReadFile(hfile, &h, 2, &l, NULL);
 
 	SetFilePointer(hfile, 18, 0, FILE_BEGIN);
-	
+
 	_HeapFree(Heap, 0, (void*)pic.lpImage);
 	pic.lpImage = NULL;
 
 	pic.W = w;
-    pic.H = h;
-	pic.lpImage = (WORD*) _HeapAlloc(Heap, 0, pic.W * pic.H * 2);
+	pic.H = h;
+	pic.lpImage = (WORD*)_HeapAlloc(Heap, 0, pic.W * pic.H * 2);
 
-    for (int y=0; y<pic.H; y++) 
-      ReadFile( hfile, (void*)(pic.lpImage + (pic.H-y-1)*pic.W), 2*pic.W, &l, NULL );
-   
-    CloseHandle( hfile );    
+	for (int y = 0; y < pic.H; y++)
+		ReadFile(hfile, (void*)(pic.lpImage + (pic.H - y - 1)*pic.W), 2 * pic.W, &l, NULL);
+
+	CloseHandle(hfile);
 }
 
 
@@ -1258,7 +1258,7 @@ void InitGUIitems() {
 	Gui_AddSliderButton("slider_bright","HUNTDAT\\MENU\\SL_BUT.TGA");
 	//========= Mouse Sense ==========//
 	startpos.x = 618;
-	startpos.y = 361;
+	startpos.y = 471;
 
 	maxValue = 255;
 	Gui_AddSlider("slider_mouse","HUNTDAT\\MENU\\SL_BAR.TGA",startpos,float(OptMsSens),0, maxValue, NULL,NULL,true,MENU_OPTIONS);
@@ -1403,11 +1403,13 @@ void LoadCharacters()
 		}
 	}
 
+	int max;
 #ifdef _iceage // alacn
-	for (c=10; c<20; c++) 
+	max = 20; 
 #else
-	for (int c=10; c<19; c++)
+	max = 19;
 #endif
+	for (int c = 10; c < max; c++)
 		if (TargetDino & (1<<c)) 	
 			if (!DinoInfo[AI_to_CIndex[c]].CallIcon.lpImage) {		
 			  wsprintf(logt, "HUNTDAT\\MENU\\PICS\\call%d.tga", c-9);
@@ -1434,11 +1436,13 @@ void LoadCharacters()
 			
 	}
 
+	int max2;
 #ifdef _iceage // alacn
-    for (c=10; c<20; c++) 
+    max2= 20; 
 #else
-	for (int c=10; c<19; c++)
+	max2 = 19;
 #endif
+		for (int c = 10; c < max2; c++)
 		if (TargetDino & (1<<c))
 			if (!fxCall[c-10][0].lpData) {
 				wsprintf(logt,"HUNTDAT\\SOUNDFX\\CALLS\\call%d_a.wav", (c-9));
@@ -1769,7 +1773,7 @@ void SaveScreenShot()
 
     // char t[12];
 	char t[16]; // 12 + null
-    wsprintf(t,"HUNT%d"__DATE__ ".BMP",++_shotcounter);
+    wsprintf(t,"HUNT%d" __DATE__ ".BMP",++_shotcounter);
     hf = CreateFile(t,
                    GENERIC_READ | GENERIC_WRITE, 
                    (DWORD) 0, 
@@ -1817,6 +1821,44 @@ void SaveScreenShot()
 
 
 //===============================================================================================
+
+void ReadCommon(FILE *stream)
+{
+	char line[256], *value;
+	while (fgets(line, 255, stream))
+	{
+		if (strstr(line, "}")) {
+			break;
+		}
+
+		value = strstr(line, "=");
+		if (!value)
+			DoHalt("Script loading error");
+		value++;
+
+		if (strstr(line, "survivalArea")) survivalArea = atoi(value);
+		if (strstr(line, "survivalWeapon")) survivalWeapon = atoi(value);
+		if (strstr(line, "survivalDTM")) survivalDTM = atoi(value);
+		if (strstr(line, "start")) startScore = atoi(value);
+
+		if (strstr(line, "radar1")) radarDefault = true;
+		if (strstr(line, "camo")) camoDefault = true;
+		if (strstr(line, "scent")) scentDefault = true;
+		if (strstr(line, "double")) doubleAmmoDefault = true;
+		if (strstr(line, "tranq")) tranqDefault = true;
+		if (strstr(line, "supply")) supplyDefault = true;
+		if (strstr(line, "radar2")) sonarDefault = true;
+		if (strstr(line, "radar3")) scannerDefault = true;
+		if (strstr(line, "dog")) dogDefault = true;
+		if (strstr(line, "bino")) binoDefault = true;
+		if (strstr(line, "binText")) binTextDefault = true;
+		if (strstr(line, "areaMap")) mapviewDefault = true;
+		if (strstr(line, "callBox")) callboxDefault = true;
+
+	}
+}
+
+
 void ReadWeapons(FILE *stream)
 {
 	TotalW = 0;	
@@ -1898,6 +1940,132 @@ void ReadWeapons(FILE *stream)
 
 }
 
+void ReadFonts(FILE *stream)
+{
+	char line[256], *value;
+	while (fgets(line, 255, stream))
+	{
+		if (strstr(line, "}")) {
+			regOffFontC = RGB(regOffR, regOffG, regOffB);
+			regOnFontC = RGB(regOnR, regOnG, regOnB);
+			scoreFontC = RGB(scoreR, scoreG, scoreB);
+			mainStatFontC = RGB(mainStatR, mainStatG, mainStatB);
+			huntOffFontC = RGB(huntOffR, huntOffG, huntOffB);
+			huntAvailFontC = RGB(huntAvailR, huntAvailG, huntAvailB);
+			huntOnFontC = RGB(huntOnR, huntOnG, huntOnB);
+			huntInfoFontC = RGB(huntInfoR, huntInfoG, huntInfoB);
+			opNameFontC = RGB(opNameR, opNameG, opNameB);
+			opValueFontC = RGB(opValueR, opValueG, opValueB);
+			break;
+		}
+
+		value = strstr(line, "=");
+		if (!value)
+			DoHalt("Script loading error");
+		value++;
+
+		if (strstr(line, "regOffR")) regOffR = atoi(value);
+		if (strstr(line, "regOffG")) regOffG = atoi(value);
+		if (strstr(line, "regOffB")) regOffB = atoi(value);
+
+		if (strstr(line, "regOnR")) regOnR = atoi(value);
+		if (strstr(line, "regOnG")) regOnG = atoi(value);
+		if (strstr(line, "regOnB")) regOnB = atoi(value);
+
+		if (strstr(line, "scoreR")) scoreR = atoi(value);
+		if (strstr(line, "scoreG")) scoreG = atoi(value);
+		if (strstr(line, "scoreB")) scoreB = atoi(value);
+
+		if (strstr(line, "mainStatR")) mainStatR = atoi(value);
+		if (strstr(line, "mainStatG")) mainStatG = atoi(value);
+		if (strstr(line, "mainStatB")) mainStatB = atoi(value);
+
+		if (strstr(line, "huntOffR")) huntOffR = atoi(value);
+		if (strstr(line, "huntOffG")) huntOffG = atoi(value);
+		if (strstr(line, "huntOffB")) huntOffB = atoi(value);
+
+		if (strstr(line, "huntAvailR")) huntAvailR = atoi(value);
+		if (strstr(line, "huntAvailG")) huntAvailG = atoi(value);
+		if (strstr(line, "huntAvailB")) huntAvailB = atoi(value);
+
+		if (strstr(line, "huntOnR")) huntOnR = atoi(value);
+		if (strstr(line, "huntOnG")) huntOnG = atoi(value);
+		if (strstr(line, "huntOnB")) huntOnB = atoi(value);
+
+		if (strstr(line, "huntInfoR")) huntInfoR = atoi(value);
+		if (strstr(line, "huntInfoG")) huntInfoG = atoi(value);
+		if (strstr(line, "huntInfoB")) huntInfoB = atoi(value);
+
+		if (strstr(line, "opNameR")) opNameR = atoi(value);
+		if (strstr(line, "opNameG")) opNameG = atoi(value);
+		if (strstr(line, "opNameB")) opNameB = atoi(value);
+
+		if (strstr(line, "opValueR")) opValueR = atoi(value);
+		if (strstr(line, "opValueG")) opValueG = atoi(value);
+		if (strstr(line, "opValueB")) opValueB = atoi(value);
+
+	}
+}
+
+void ReadAccessories(FILE *stream)
+{
+	TotalA = 0;
+	char line[256], *value;
+	while (fgets(line, 255, stream))
+	{
+		if (strstr(line, "}")) break;
+		if (strstr(line, "{")) {
+			//-> Load Image...
+			wsprintf(logt, "HUNTDAT\\MENU\\PICS\\Equip%d.TGA", TotalA + 1);
+			LoadPictureTGA(AcessInfo[TotalA].MenuPic, logt);
+			//-> Load Txt
+			wsprintf(logt, "HUNTDAT\\MENU\\TXT\\Equip%d.NFO", TotalA + 1);
+			hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			if (hfile != INVALID_HANDLE_VALUE) {
+				ReadFile(hfile, AcessInfo[TotalA].MenuTxt, 300, &l, NULL);
+				CloseHandle(hfile);
+			}
+			else {
+				PrintLog("Failed to load equip txt from ");
+				PrintLog(logt);
+				PrintLog("\n");
+			}
+
+			//-> Read file
+			while (fgets(line, 255, stream)) {
+				if (strstr(line, "}")) { TotalA++; break; }
+				value = strstr(line, "=");
+				if (!value) DoHalt("Script loading error");
+				value++;
+
+				if (strstr(line, "price")) AcessInfo[TotalA].price = atoi(value);
+				if (strstr(line, "scoreMod")) AcessInfo[TotalA].scoreMod = (float)atof(value);
+
+				if (strstr(line, "radar1")) AcessInfo[TotalA].radar = true;
+				if (strstr(line, "camo")) AcessInfo[TotalA].camo = true;
+				if (strstr(line, "scent")) AcessInfo[TotalA].scent = true;
+				if (strstr(line, "double")) AcessInfo[TotalA].doubleAmmo = true;
+				if (strstr(line, "tranq")) AcessInfo[TotalA].tranq = true;
+				if (strstr(line, "supply")) AcessInfo[TotalA].supply = true;
+				if (strstr(line, "radar2")) AcessInfo[TotalA].sonar = true;
+				if (strstr(line, "radar3")) AcessInfo[TotalA].scanner = true;
+				if (strstr(line, "dog")) AcessInfo[TotalA].dog = true;
+				if (strstr(line, "bino")) AcessInfo[TotalA].bino = true;
+				if (strstr(line, "binText")) AcessInfo[TotalA].binText = true;
+				if (strstr(line, "areaMap")) AcessInfo[TotalA].mapview = true;
+				if (strstr(line, "callBox")) AcessInfo[TotalA].callbox = true;
+
+				if (strstr(line, "name")) {
+					value = strstr(line, "'"); if (!value) DoHalt("Script loading error");
+					value[strlen(value) - 2] = 0;
+					strcpy(AcessInfo[TotalA].name, &value[1]);
+				}
+
+			}
+		}
+
+	}
+}
 
 void ReadCharacters(FILE *stream)
 {
@@ -1955,6 +2123,11 @@ void ReadCharacters(FILE *stream)
 				if (strstr(line, "scaleA"   )) DinoInfo[TotalC].ScaleA    = atoi(value);
 				if (strstr(line, "price"   )) DinoInfo[TotalC].Price    = atoi(value);
 				if (strstr(line, "danger"   )) DinoInfo[TotalC].DangerCall= TRUE;
+				if (strstr(line, "hide")) {
+					DinoInfo[TotalC].Hide = TRUE;
+					wsprintf(logt, "HUNTDAT\\MENU\\PICS\\Dino%dno.TGA", TotalC - 6);
+					LoadPictureTGA(DinoInfo[TotalC].MenuPicHidden, logt);
+				}
 
 				if (strstr(line, "name")) {					
 					value = strstr(line, "'"); if (!value) DoHalt("Script loading error");
@@ -1981,19 +2154,19 @@ void ReadDescFromStream(char fname[128]) {
 	PrintLog("Reading Map Description File: ");
 	PrintLog(fname);
 	PrintLog("\n");
-	FILE *streamb;
-	char line[256];
-	int i;
-    
-	streamb = fopen(fname, "r");
-	if (!streamb) {
-		PrintLog("Could Not Read map txt desc\n");
-		return;
+
+	wsprintf(logt, fname);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, MapFile[TotalM].desc, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load area txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
 	}
 
-	fgets( MapFile[TotalM].desc, 512, streamb );
-
-	fclose (streamb);
 }
 
 void ReadC2MapInfo(FILE *stream) {
@@ -2105,18 +2278,19 @@ void LoadUserList() {
 }
 
 void GetAcessDesc(char fname[128],int ID) {
-	FILE *streamb;
-	char line[256];
 
-	streamb = fopen(fname, "r");
-	if (!streamb) {
-		PrintLog("Could Not Read acessory txt desc\n");
-		return;
+	wsprintf(logt, fname);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, AcessInfo[ID].MenuTxt, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load access txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
 	}
 
-	fgets( AcessInfo[ID].MenuTxt, 512, streamb );
-
-	fclose (streamb);
 	return;
 }
 
@@ -2125,20 +2299,84 @@ void LoadResourcesScript()
     FILE *stream;
 	char line[256];
     
-	stream = fopen("HUNTDAT\\_res.txt", "r");
-    if (!stream) DoHalt("Can't open resources file _res.txt");
+	stream = fopen("HUNTDAT\\_menu.txt", "r");
+    if (!stream) DoHalt("Can't open resources file _menu.txt");
 
 	while (fgets( line, 255, stream)) {
        if (line[0] == '.') break;
+	   if (strstr(line, "common")) ReadCommon(stream);
 	   if (strstr(line, "weapons") ) ReadWeapons(stream);
 	   if (strstr(line, "characters") ) ReadCharacters(stream);
+	   if (strstr(line, "fonts")) ReadFonts(stream);
+	   if (strstr(line, "access")) ReadAccessories(stream);
 	}
 	fclose (stream);
+
+
+
+	//->DAWN
+	LoadPictureTGA(DawnPic, "HUNTDAT\\MENU\\PICS\\dawn.TGA");
+	wsprintf(logt, "HUNTDAT\\MENU\\TXT\\DAY1.NFO", TotalW + 1);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, DawnTxt, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load dawn txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
+	}
+
+	//->DAY
+	LoadPictureTGA(DayPic, "HUNTDAT\\MENU\\PICS\\day.TGA");
+	wsprintf(logt, "HUNTDAT\\MENU\\TXT\\DAY2.NFO", TotalW + 1);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, DayTxt, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load day txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
+	}
+
+	//->NIGHT
+	LoadPictureTGA( NightPic, "HUNTDAT\\MENU\\PICS\\night.TGA");
+	wsprintf(logt, "HUNTDAT\\MENU\\TXT\\DAY3.NFO", TotalW + 1);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, NightTxt, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load night txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
+	}
+
+	//->OBSERVER MODE
+	LoadPictureTGA(ObservPic, "HUNTDAT\\MENU\\PICS\\observ.TGA");
+	wsprintf(logt, "HUNTDAT\\MENU\\TXT\\OBSERVE.NFO", TotalW + 1);
+	hfile = CreateFile(logt, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hfile != INVALID_HANDLE_VALUE) {
+		ReadFile(hfile, ObservTxt, 300, &l, NULL);
+		CloseHandle(hfile);
+	}
+	else {
+		PrintLog("Failed to load observer mode txt from ");
+		PrintLog(logt);
+		PrintLog("\n");
+	}
+
 
 	//-> Get Maps.....
 	LoadMapList(); //Build list of maps
 
 	//-> Get Accessories....
+	/*  
+
 	TotalA = 0;
 	strcpy(AcessInfo[0].name,"Camouflage");
 	strcpy(AcessInfo[0].CommandLine,"-camo");
@@ -2179,8 +2417,9 @@ void LoadResourcesScript()
 	strcpy(AcessInfo[5].CommandLine,"-tranq");
 	AcessInfo[5].price = 0;
 	GetAcessDesc("huntdat\\menu\\txt\\tranq.NFO",TotalA);
-	LoadPictureTGA(AcessInfo[TotalA].MenuPic,"huntdat\\menu\\pics\\EQUIP6.tga");
+	LoadPictureTGA(AcessInfo[TotalA].MenuPic, "huntdat\\menu\\pics\\EQUIP6.tga");
 	TotalA++;
+	*/
 
 	//-> Get Users....
 	LoadUserList(); //Build list of users

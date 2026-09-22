@@ -443,6 +443,29 @@ void DrawPostObjects()
 			  POINT ms;
 			  GetCursorPos(&ms);
 
+			  if (ms.y > 291 && ms.y < 322) {
+				  //-> Hovering Over dawn
+				  if (ms.x > 8 && ms.x < 69) {
+					  DrawPicture(38, 73, DawnPic);
+					  strcpy(ActiveInfoText, DawnTxt);
+				  }
+				  //-> Hovering Over day
+				  if (ms.x > 70 && ms.x < 132) {
+					  DrawPicture(38, 73, DayPic);
+					  strcpy(ActiveInfoText, DayTxt);
+				  }
+				  //-> Hovering Over night
+				  if (ms.x > 133 && ms.x < 195) {
+					  DrawPicture(38, 73, NightPic);
+					  strcpy(ActiveInfoText, NightTxt);
+				  }
+				  //-> Hovering Over observer
+				  if (ms.x > 606 && ms.x < 793) {
+					  DrawPicture(38, 73, ObservPic);
+					  strcpy(ActiveInfoText, ObservTxt);
+				  }
+			  }
+
 			  if (ms.x > 15 && ms.x < 180 && ms.y > 382 && ms.y < 545) {
 				  //-> Hovering Over map
 				  ClickedSlot = int( (ms.y - 382)/16); //-> SlotID = (ClickedY - MinimimY)/size_per_slot. See fonts in game.cpp for font sizes. This is using small
@@ -459,8 +482,14 @@ void DrawPostObjects()
 				  ClickedSlot = int( (ms.y - 382)/16); //-> SlotID = (ClickedY - MinimimY)/size_per_slot. See fonts in game.cpp for font sizes. This is using small
 				  FieldOffset = Gui_GetSliderValue("slider_dinos")/2; //<- Make it less sensitive
 				  if (strlen(DinoInfo[(ClickedSlot+FieldOffset+7)].Name) >0 ) {
-					DrawPicture(38,73,DinoInfo[(ClickedSlot+FieldOffset+7)].MenuPic);
-					strcpy(ActiveInfoText,DinoInfo[(ClickedSlot+FieldOffset+7)].MenuTxt);
+					  if (DinoInfo[(ClickedSlot + FieldOffset + 7)].Hide && TrophyRoom.Score < DinoInfo[(ClickedSlot + FieldOffset + 7)].Price) {
+						  DrawPicture(38, 73, DinoInfo[(ClickedSlot + FieldOffset + 7)].MenuPicHidden);
+					  } else {
+						  DrawPicture(38, 73, DinoInfo[(ClickedSlot + FieldOffset + 7)].MenuPic);
+						  strcpy(ActiveInfoText, DinoInfo[(ClickedSlot + FieldOffset + 7)].MenuTxt);
+						  DinoStatType = 1;
+						  DinoStatIndex = (ClickedSlot + FieldOffset + 7);
+					  }
 				  }
 
 			  }
@@ -473,6 +502,8 @@ void DrawPostObjects()
 				  if (strlen(WeapInfo[(ClickedSlot+FieldOffset)].Name) > 0) {
 					  DrawPicture(38,73,WeapInfo[(ClickedSlot+FieldOffset)].MenuPic);
 					  strcpy(ActiveInfoText,WeapInfo[ClickedSlot+FieldOffset].MenuTxt);
+					  DinoStatType = 2;
+					  DinoStatIndex = (ClickedSlot + FieldOffset);
 					}
 			  }
 			 
@@ -764,7 +795,7 @@ LONG APIENTRY MainWndProc( HWND hWnd, UINT message, UINT wParam, LONG lParam)
 		if ((int)wParam == KeyMap.fkBinoc) ToggleBinocular();
 		if ((int)wParam == KeyMap.fkCCall) ChangeCall();
 
-		if ((int)wParam == KeyMap.fkSupply) CallSupply();
+		//if ((int)wParam == KeyMap.fkSupply) CallSupply();
 
 		if ((int)wParam == KeyMap.fkRun  ) ToggleRunMode();
 		if ((int)wParam == KeyMap.fkCrouch) ToggleCrouchMode();
@@ -1044,15 +1075,7 @@ void ProcessButton6() {
 	}
 }
 
-void ProcessButton7() {
-	//==== Button 7 was pressed ====//
-	switch (CURRENT_MENU) {
-		case MENU_PREHUNT:
-			//-> Back was pressed
-			CURRENT_MENU = MENU_MAIN;
-			break;
-	}
-}
+
 
 void LaunchCarnProcess() {
 	//=====================//
@@ -1094,6 +1117,48 @@ void LaunchCarnProcess() {
 }
 
 
+void ProcessButton7() {
+	//==== Button 7 was pressed ====//
+	switch (CURRENT_MENU) {
+	case MENU_PREHUNT:
+	{
+		//-> Back was pressed
+		CURRENT_MENU = MENU_MAIN;
+		break;
+	}
+	case MENU_MAIN:
+	{
+		//survival
+		char Renderer[128];
+		//-> Get Renderer...
+		switch (OptRender) {
+		case 0:
+			strcpy(Renderer, "v_soft");
+			break;
+		case 1:
+			strcpy(Renderer, "v_3dfx");
+			break;
+		case 2:
+			strcpy(Renderer, "v_d3d");
+			break;
+			//case 3:
+			//	strcpy(Renderer,"v_d3dsoft");
+			//	break;
+		}
+		wsprintf(logt, "%s.ren prj=huntdat\\areas\\area%d reg=%d dtm=%d wep=%d din=0 -survival",
+			Renderer,
+			survivalArea,
+			TrophyRoom.RegNumber,
+			survivalDTM,
+			1 << (survivalWeapon - 1));
+			
+		//MessageBox(hwndMain, logt, "test", MB_OK | MB_ICONHAND); // alacn
+		LaunchCarnProcess();
+		break;
+	}
+	}
+}
+
 void ProcessButton3() {
 	//==== Button 3 was clicked ====//
 	switch (CURRENT_MENU) {
@@ -1116,9 +1181,9 @@ void ProcessButton3() {
 					case 2:
 						strcpy(Renderer,"v_d3d");
 						break;
-					case 3:
-						strcpy(Renderer,"v_d3dsoft");
-						break;
+					//case 3:
+					//	strcpy(Renderer,"v_d3dsoft");
+					//	break;
 				}
 				wsprintf(logt,"%s.ren prj=huntdat\\areas\\trophy reg=%d dtm=1",Renderer,TrophyRoom.RegNumber);
 				LaunchCarnProcess();
@@ -1178,9 +1243,9 @@ void ProcessButton8() {
 					case 2:
 						strcpy(Renderer,"v_d3d");
 						break;
-					case 3:
-						strcpy(Renderer,"v_d3dsoft");
-						break;
+					//case 3:
+					//	strcpy(Renderer,"v_d3dsoft");
+					//	break;
 				}
 				//-> Get Day Time...
 					//SelectedDay = SelectedDay; //<- Here to get your attention
@@ -1197,27 +1262,149 @@ void ProcessButton8() {
 						}
 					}
 			    //-> Get Accessories.... and Get Observer Mode...
+
+					bool radarTemp, camoTemp, scentTemp, doubleAmmoTemp,
+						tranqTemp, supplyTemp, sonarTemp, scannerTemp, dogTemp,
+						binoTemp, binTextTemp;
+					radarTemp = radarDefault;
+					camoTemp = camoDefault;
+					scentTemp = scentDefault;
+					doubleAmmoTemp = doubleAmmoDefault;
+					tranqTemp = tranqDefault;
+					supplyTemp = supplyDefault;
+					sonarTemp = sonarDefault;
+					scannerTemp = scannerDefault;
+					dogTemp = dogDefault;
+					binoTemp = binoDefault;
+					binTextTemp = binTextDefault;
+					bool mapviewTemp = mapviewDefault;
+					bool callboxTemp = callboxDefault;
+
+					float scoreMultiplier = 1;
+
 					for (int i = 0; i < TotalA; i++) {
 						if (AcessInfo[i].Selected) {
-							if (int(strlen(Acces)) > 3)
-								wsprintf(Acces,"%s %s",Acces,AcessInfo[i].CommandLine);
-							else
-								wsprintf(Acces,"%s",AcessInfo[i].CommandLine);
+							scoreMultiplier *= AcessInfo[i].scoreMod;
+							if (AcessInfo[i].radar) radarTemp = TRUE;
+							if (AcessInfo[i].camo) camoTemp = TRUE;
+							if (AcessInfo[i].scent) scentTemp = TRUE;
+							if (AcessInfo[i].doubleAmmo) doubleAmmoTemp = TRUE;
+							if (AcessInfo[i].tranq) tranqTemp = TRUE;
+							if (AcessInfo[i].supply) supplyTemp = TRUE;
+							if (AcessInfo[i].sonar) sonarTemp = TRUE;
+							if (AcessInfo[i].scanner) scannerTemp = TRUE;
+							if (AcessInfo[i].dog) dogTemp = TRUE;
+							if (AcessInfo[i].bino) binoTemp = TRUE;
+							if (AcessInfo[i].binText) binTextTemp = TRUE;
+							if (AcessInfo[i].mapview) mapviewTemp = TRUE;
+							if (AcessInfo[i].callbox) callboxTemp = TRUE;
 						}
 					}
+
+					if (scannerTemp) sonarTemp = false;
+					if (radarTemp) {
+						sonarTemp = false;
+						scannerTemp = false;
+					}
+
+					int scoreMultiplierI = scoreMultiplier * 10000;
+
+					if (radarTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-radar");
+						else
+							strcpy(Acces, "-radar");
+					}
+					if (camoTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-camo");
+						else
+							strcpy(Acces, "-camo");
+					}
+					if (scentTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-scent");
+						else
+							strcpy(Acces, "-scent");
+					}
+					if (doubleAmmoTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-double");
+						else
+							strcpy(Acces,  "-double");
+					}
+					if (tranqTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-tranq");
+						else
+							strcpy(Acces, "-tranq");
+					}
+					if (supplyTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-supply");
+						else
+							strcpy(Acces, "-supply");
+					}
+					if (sonarTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-sonar");
+						else
+							strcpy(Acces, "-sonar");
+					}
+					if (scannerTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-scanner");
+						else
+							strcpy(Acces, "-scanner");
+					}
+					if (dogTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-huntdog");
+						else
+							strcpy(Acces, "-huntdog");
+					}
+					if (binoTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-binoc");
+						else
+							strcpy(Acces, "-binoc");
+					}
+					if (binTextTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-bintext");
+						else
+							strcpy(Acces, "-bintext");
+					}
+					if (mapviewTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-map");
+						else
+							strcpy(Acces, "-map");
+					}
+					if (callboxTemp) {
+						if (int(strlen(Acces)) > 3)
+							wsprintf(Acces, "%s %s", Acces, "-callbox");
+						else
+							strcpy(Acces, "-callbox");
+					}
+
 					if (ObservMode)
 						if (int(strlen(Acces)) > 3)
 							wsprintf(Acces,"%s %s",Acces,"-observ");
 						else
-							wsprintf(Acces,"%s","-observ");
+							strcpy(Acces,"-observ");
 
 			    //-> Verify that it is OK to launch....
 				if (SelectedMap == -1 || SelectedMap >= TotalM || DinoCode == 0 || WeaponCode == 0) return;
 				//-> LAUNCH!!
-				wsprintf(logt,"%s.ren prj=%s reg=%d din=%d wep=%d dtm=%d %s",Renderer,MapFile[SelectedMap].mapfile,TrophyRoom.RegNumber,DinoCode,WeaponCode,SelectedDay,Acces);
+				wsprintf(logt,"%s.ren prj=%s reg=%d din=%d wep=%d dtm=%d scr=%d %s",Renderer,MapFile[SelectedMap].mapfile,TrophyRoom.RegNumber,DinoCode,WeaponCode,SelectedDay,scoreMultiplierI,Acces);
 				PrintLog(logt);
 				LaunchCarnProcess();
 			break;
+			}
+		case MENU_MAIN:
+			{
+				//MULTIPLAYER
 			}
 	}
 }
@@ -1314,7 +1501,7 @@ int ProcessShoot()
 						Gui_SetSliderValue("slider_bright",newvalue);
 						OptBrightness = newvalue;
 					}
-					if (MouseAtX > 618 && MouseAtX < 618+123 && MouseAtY < 361+11 && MouseAtY > 361) {
+					if (MouseAtX > 618 && MouseAtX < 618+123 && MouseAtY < 71 + 21 + (22 * 18) && MouseAtY > 71 + (22 * 18)) {
 						//-> User clicked slider_mouse slide...
 						//SliderXStart = 205
 						newvalue = (MouseAtX - 618)*2;
@@ -1333,6 +1520,7 @@ int ProcessShoot()
 							OptSys = 0;
 					}
 					   //-> Keys
+
 					if (MouseAtY > 72 && MouseAtY < 91 && MouseAtX > 518 && MouseAtX < 668) {
 						//Forward key...
 						AKeySelected = true;
@@ -1405,25 +1593,42 @@ int ProcessShoot()
 						PtrSelectedKey = &KeyMap.fkBinoc; //PrtSelectedKey = Addressof keymap.key
 						AddVoicev(TypeSound[0].length,TypeSound[0].lpData, 256);
 					}
-					if (MouseAtY > 71+(22*15) && MouseAtY < 71+21+(22*15) && MouseAtX > 518 && MouseAtX < 668) {
-						//Sprint
+
+
+
+					if (MouseAtY > 71+(22*12) && MouseAtY < 71+21+(22*12) && MouseAtX > 518 && MouseAtX < 668) {
+						//Reload
 						AKeySelected = true;
-						PtrSelectedKey = &KeyMap.fkSprint; //PrtSelectedKey = Addressof keymap.key
+						PtrSelectedKey = &KeyMap.fkUp; //PrtSelectedKey = Addressof keymap.key
 						AddVoicev(TypeSound[0].length,TypeSound[0].lpData, 256);
 					}
-					if (MouseAtY > 71+(22*16) && MouseAtY < 71+21+(22*16) && MouseAtX > 518 && MouseAtX < 668) {
-						//Aim
+					if (MouseAtY > 71+(22*13) && MouseAtY < 71+21+(22*13) && MouseAtX > 518 && MouseAtX < 668) {
+						//Resupply
 						AKeySelected = true;
-						PtrSelectedKey = &KeyMap.fkAim; //PrtSelectedKey = Addressof keymap.key
+						PtrSelectedKey = &KeyMap.fkDown; //PrtSelectedKey = Addressof keymap.key
 						AddVoicev(TypeSound[0].length,TypeSound[0].lpData, 256);
 					}
-					if (MouseAtY > 71+(22*17) && MouseAtY < 71+21+(22*17) && MouseAtX > 518 && MouseAtX < 668) {
-						//Call Supplies
+					if (MouseAtY > 71+(22*14) && MouseAtY < 71+21+(22*14) && MouseAtX > 518 && MouseAtX < 668) {
+						//Hold Breath
 						AKeySelected = true;
-						PtrSelectedKey = &KeyMap.fkSupply; //PrtSelectedKey = Addressof keymap.key
+						PtrSelectedKey = &KeyMap.fkLeft; //PrtSelectedKey = Addressof keymap.key
 						AddVoicev(TypeSound[0].length,TypeSound[0].lpData, 256);
 					}
-					if (MouseAtY > 335 && MouseAtY < 353 && MouseAtX > 518 && MouseAtX < 668) {
+					if (MouseAtY > 71 + (22 * 15) && MouseAtY < 71 + 21 + (22 * 15) && MouseAtX > 518 && MouseAtX < 668) {
+						//Firing Mode
+						AKeySelected = true;
+						PtrSelectedKey = &KeyMap.fkRight; //PrtSelectedKey = Addressof keymap.key
+						AddVoicev(TypeSound[0].length, TypeSound[0].lpData, 256);
+					}
+					if (MouseAtY > 71 + (22 * 16) && MouseAtY < 71 + 21 + (22 * 16) && MouseAtX > 518 && MouseAtX < 668) {
+						//Rack
+						AKeySelected = true;
+						PtrSelectedKey = &KeyMap.fkStrafe; //PrtSelectedKey = Addressof keymap.key
+						AddVoicev(TypeSound[0].length, TypeSound[0].lpData, 256);
+					}
+
+
+					if (MouseAtY > 71 + (22 * 17) && MouseAtY < 71 + 21 + (22 * 17) && MouseAtX > 518 && MouseAtX < 668) {
 						//reverse mouse
 						AddVoicev  (MENUGO.length,MENUGO.lpData,255);
 						if (REVERSEMS == 0)
@@ -1443,7 +1648,7 @@ int ProcessShoot()
 						//-> Video
 						AddVoicev  (MENUGO.length,MENUGO.lpData,255);
 						OptRender++;
-						if (OptRender > 3)
+						if (OptRender > 2)
 							OptRender = 0;
 					}
 					if (MouseAtY > 398 && MouseAtY < 417 && MouseAtX > 61 && MouseAtX < 275) {
@@ -1563,7 +1768,7 @@ int ProcessShoot()
 						// -> Play Sound
 						ClickedSlot = int( (ms.y - 382)/16); //-> SlotID = (ClickedY - MinimimY)/size_per_slot. See fonts in game.cpp for font sizes. This is using small
 						//FieldOffset = Gui_GetSliderValue("slider_weapons")/2; //<- Make it less sensitive
-						if ((ClickedSlot) < TotalW) {
+						if ((ClickedSlot) < TotalA) {
 							AcessInfo[(ClickedSlot)].Selected = !AcessInfo[(ClickedSlot)].Selected;
 							//-> Check price...
 							if (AcessInfo[(ClickedSlot)].Selected && TrophyRoom.Score - (SpentCredits+AcessInfo[(ClickedSlot)].price) < 0) {

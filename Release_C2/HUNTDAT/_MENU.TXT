@@ -1,0 +1,271 @@
+
+common {
+ survivalArea = 5
+ survivalWeapon = 2
+ survivalDTM = 0
+ bino = TRUE
+ binText = TRUE
+}
+
+weapons {
+{
+ name  = 'Pistol'
+ power = 2
+ prec  = 0.8
+ loud  = 0.8
+ rate  = 1.6
+ price   = 20
+}
+
+{
+ name  = 'Shotgun'
+ power = 1
+ prec  = 0.3
+ loud  = 1.5
+ rate  = 1.2
+ price    = 100
+} 
+
+
+{
+ name  = 'DB Shotgun'
+ power = 1
+ prec  = 0.2
+ loud  = 1.9
+ rate  = 1.2
+ price    = 150
+} 
+
+
+{
+ name  = 'X-Bow'
+ power = 6
+ prec  = 1.0
+ loud  = 0.4
+ rate  = 1.0
+ price    = 50
+}
+
+{
+ name  = 'Rifle'
+ power = 4
+ prec  = 1.8
+ loud  = 1.5
+ rate  = 1.0
+ price    = 100
+}
+
+{
+ name  = 'Sniper rifle'
+ power = 4
+ prec  = 2.0
+ loud  = 1.4
+ rate  = 1.0
+ price    = 200
+}
+
+
+
+}  //==== end of weapons =========//
+
+
+characters {
+
+{
+ name    = 'Hunter'
+}
+
+{    
+ name    = 'Moshops'
+}
+
+{
+ name    = 'Gallimimus'
+}
+
+{
+ name   = 'Dimorphodon'
+}
+
+{
+ name   = 'Pteranodon'
+}
+
+{
+ name    = 'Dimetrodon'
+}
+
+{
+ name = 'Brachiosaurus'
+}
+
+{
+ name      = 'Parasaurolophus'
+ ai        = 10
+ smell     = 0.8
+ hear      = 1.0
+ look      = 0.4
+ price 	   = 10
+}
+
+{
+ name = 'Ankylosaurus'
+ ai        = 11
+ smell     = 0.4 
+ hear      = 0.8
+ look      = 0.6
+ price 	   = 15
+}
+
+{
+ name = 'Stegosaurus'
+ ai        = 12
+ smell     = 0.4
+ hear      = 0.8
+ look      = 0.6
+ price 	   = 20
+}
+
+{
+ name = 'Allosaurus'
+ ai        = 13
+ smell     = 1.0
+ hear      = 0.3
+ look      = 0.5
+ price 	   = 30
+}
+
+{
+ name = 'Chasmosaurus'
+ ai        = 14
+ smell     = 0.6 
+ hear      = 0.5
+ look      = 0.4
+ price 	   = 50
+}
+
+{
+ name = 'Velociraptor'
+ ai        = 15
+ smell     = 1.3
+ hearK     = 0.7
+ lookK     = 0.5
+ price 	   = 100
+}
+
+{
+ name = 'Spinosaurus'
+ ai        = 16
+ smell     = 1.1
+ hearK     = 0.6
+ lookK     = 0.6
+ price 	   = 250
+}
+
+
+
+
+{
+ name = 'Ceratosaurus'
+ ai        = 17
+ smell     = 1.2
+ hearK     = 0.7
+ lookK     = 0.6
+ price 	   = 300
+}
+
+
+
+
+{
+ name = 'T-Rex'
+ ai        = 18
+ smell     = 0.85 
+ hear      = 0.8 
+ look      = 0.8
+ price 	   = 500
+}
+
+} //===== end of characters ==========//
+
+access {
+
+{
+  name = 'Camouflage'
+  price = 0
+  scoreMod = 0.85
+  camo = TRUE
+}
+
+{
+  name = 'Radar'
+  price = 0
+  scoreMod = 0.7
+  radar = TRUE
+}
+
+{
+  name = 'Cover Scent'
+  price = 0
+  scoreMod = 0.8
+  scent = TRUE
+}
+
+{
+  name = 'Double Ammo'
+  price = 0
+  scoreMod = 1
+  double = TRUE
+}
+
+{
+  name = 'Resupply'
+  price = 100
+  scoreMod = 1
+  supply = TRUE
+}
+
+{
+  name = 'Tranquilizers'
+  price = 0
+  scoreMod = 1.25
+  tranq = TRUE
+}
+
+} //===== end of accessories ==========//
+
+fonts {
+ regOffR = 165
+ regOffG = 115
+ regOffB = 49
+ regOnR = 115
+ regOnG = 148
+ regOnB = 49
+ scoreR = 165
+ scoreG = 115
+ scoreB = 49
+ mainStatR = 148
+ mainStatG = 148
+ mainStatB = 33
+ huntOffR = 99
+ huntOffG = 99
+ huntOffB = 99
+ huntAvailR = 49
+ huntAvailG = 148
+ huntAvailB = 148
+ huntOnR = 198
+ huntOnG = 181
+ huntOnB = 0
+ huntInfoR = 148
+ huntInfoG = 148
+ huntInfoB = 66
+ opNameR = 181
+ opNameG = 134
+ opNameB = 82
+ opValueR = 165
+ opValueG = 181
+ opValueB = 181
+}
+
+
+.
